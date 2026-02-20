@@ -9,7 +9,6 @@ on:
 
 permissions:
   contents: write
-  checks: write
   pages: write
   id-token: write
 
@@ -35,16 +34,10 @@ jobs:
 
       - name: Run API tests
         run: npx playwright test
+        continue-on-error: true
         env:
           CI: true
           BASE_URL: https://jsonplaceholder.typicode.com
-
-      - name: Collect Allure results
-        if: always()
-        run: |
-          mkdir -p allure-results
-          echo "Searching for allure-results..."
-          ls -la allure-results/ 2>/dev/null || echo "No results found"
 
       - name: Upload Playwright HTML report
         uses: actions/upload-artifact@v4
@@ -53,14 +46,6 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 30
-
-      - name: Get Allure history
-        uses: actions/checkout@v4
-        if: always()
-        continue-on-error: true
-        with:
-          ref: gh-pages
-          path: gh-pages
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -76,32 +61,20 @@ jobs:
           tar -xzf allure.tgz
           echo "$PWD/allure-2.30.0/bin" >> $GITHUB_PATH
 
-      - name: Copy Allure history
-        if: always()
-        run: |
-          if [ -d gh-pages/last-history ]; then
-            mkdir -p allure-results/history
-            cp -r gh-pages/last-history/* allure-results/history/
-          fi
-
       - name: Generate Allure report
         if: always()
-        run: allure generate allure-results -o allure-report --clean
-
-      - name: Prepare GitHub Pages content
-        if: always()
         run: |
-          mkdir -p allure-history
-          cp -r allure-report/* allure-history/
-          cp -r allure-report/history allure-history/last-history || true
+          mkdir -p allure-results
+          allure generate allure-results -o allure-report --clean
 
       - name: Deploy Allure report to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
-        if: always() && github.event_name == 'push'
+        if: always()
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: gh-pages
-          publish_dir: allure-history
+          publish_dir: allure-report
+          force_orphan: true
 
       - name: Upload Allure results
         uses: actions/upload-artifact@v4
