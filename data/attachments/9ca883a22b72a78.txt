@@ -1,0 +1,2 @@
+[02:04:48 info] PUT /posts/1 — Title: Updated Title
+[02:04:48 info] Response status: 200 (expected: 200)

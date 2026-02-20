@@ -1,0 +1,2 @@
+[02:04:47 info] DELETE /posts/1
+[02:04:47 info] Response status: 200 (expected: 200)

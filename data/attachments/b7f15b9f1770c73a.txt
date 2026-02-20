@@ -1,0 +1,2 @@
+[02:04:47 info] POST /posts — Title: Astrum admitto vestigium., UserId: 9
+[02:04:47 info] Response status: 201 (expected: 201)
