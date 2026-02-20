@@ -8,22 +8,14 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
-
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
 
 jobs:
   api-tests:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
       - name: Checkout repository
@@ -74,6 +66,17 @@ jobs:
         run: |
           mkdir -p allure-results
           allure generate allure-results -o allure-report --clean
+
+      - name: Enable GitHub Pages
+        if: always()
+        run: |
+          # Try to enable Pages via API - create Pages site with gh-pages as source
+          curl -s -X POST \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            https://api.github.com/repos/${{ github.repository }}/pages \
+            -d '{"build_type":"workflow"}' || echo "Pages may already be enabled"
 
       - name: Setup GitHub Pages
         uses: actions/configure-pages@v5
